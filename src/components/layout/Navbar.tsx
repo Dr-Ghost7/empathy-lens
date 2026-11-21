@@ -3,8 +3,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Eye, ShieldCheck, Terminal, Compass } from 'lucide-react';
-import { useLenses } from '@/context/LensContext';
+import { Eye, Compass, BookOpen, Layers } from 'lucide-react';
+
+function ChromeIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="21.17" y1="8" x2="12" y2="8" />
+      <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
+      <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
+    </svg>
+  );
+}
 
 function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -22,34 +33,23 @@ function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { activeLenses, clearLenses } = useLenses();
 
   const navItems = [
-    { href: '/', label: 'Challenges', icon: ShieldCheck },
-    { href: '/playground', label: 'Sandbox', icon: Terminal },
-    { href: '/lenses', label: 'Lens Matrix', icon: Compass },
-    { href: '/about', label: 'Methodology', icon: Eye },
+    { href: '/', label: 'Simulator', icon: Eye },
+    { href: '/#extension', label: 'Extension', icon: ChromeIcon },
+    { href: '/lenses', label: 'Lens Guide', icon: Compass },
+    { href: '/about', label: 'Methodology', icon: BookOpen },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-zinc-950 shadow-md group-hover:scale-105 transition-transform">
-            <Eye className="w-5 h-5 stroke-[2.5]" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500 transition-colors">
+            <Eye className="w-4 h-4" />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-base tracking-tight text-white">Empathy Lens</span>
-              <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20 font-semibold">
-                v1.0
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-400 hidden sm:block">
-              Interactive Accessibility Sandbox & Auditor
-            </p>
-          </div>
+          <span className="font-semibold text-sm tracking-tight text-white">Empathy Lens</span>
         </Link>
 
         {/* Navigation Items */}
@@ -63,31 +63,21 @@ export function Navbar() {
                 href={item.href}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   isActive
-                    ? 'bg-zinc-800 text-white font-semibold shadow-inner'
+                    ? 'text-white bg-zinc-800/80'
                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                <Icon className="w-3.5 h-3.5 text-zinc-500" />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Right Action & GitHub */}
-        <div className="flex items-center gap-3">
-          {activeLenses.length > 0 && (
-            <button
-              onClick={clearLenses}
-              className="text-xs bg-rose-950/40 text-rose-300 border border-rose-800/50 hover:bg-rose-900/40 px-2.5 py-1 rounded-md transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
-            >
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              Reset Lenses ({activeLenses.length})
-            </button>
-          )}
-
+        {/* GitHub */}
+        <div className="flex items-center gap-2">
           <a
-            href="https://github.com/Dr-Ghost7"
+            href="https://github.com/Dr-Ghost7/empathy-lens"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View on GitHub"
