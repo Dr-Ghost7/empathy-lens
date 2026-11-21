@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Empathy Lens — Live Accessibility Simulator",
+  "version": "1.0.0",
+  "description": "Experience any live webpage through real-world visual, motor, and situational accessibility lenses.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Empathy Lens"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["filters.svg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

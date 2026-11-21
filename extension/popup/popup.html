@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Empathy Lens</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-box">
+          <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Empathy Lens</h1>
+          <p class="brand-subtitle">Live Web Accessibility Simulator</p>
+        </div>
+      </div>
+      <button id="btn-reset-top" class="btn-reset-top" title="Reset all filters">Reset</button>
+    </header>
+
+    <!-- Active Lens Status Bar -->
+    <div id="status-bar" class="status-bar">
+      <span class="status-dot"></span>
+      <span id="status-text">Standard Vision (No lens active)</span>
+    </div>
+
+    <!-- Main Lenses Grid -->
+    <main class="content-body">
+      <!-- Section: Color Vision -->
+      <section class="section">
+        <h2 class="section-title">Color Vision Deficiencies (CVD)</h2>
+        <div class="lens-grid">
+          <button class="lens-card" data-lens="deuteranopia">
+            <span class="lens-name">Deuteranopia</span>
+            <span class="lens-desc">Green-blind (~6% of men)</span>
+          </button>
+          <button class="lens-card" data-lens="protanopia">
+            <span class="lens-name">Protanopia</span>
+            <span class="lens-desc">Red-blind (~1% of men)</span>
+          </button>
+          <button class="lens-card" data-lens="tritanopia">
+            <span class="lens-name">Tritanopia</span>
+            <span class="lens-desc">Blue-yellow deficiency</span>
+          </button>
+          <button class="lens-card" data-lens="achromatopsia">
+            <span class="lens-name">Achromatopsia</span>
+            <span class="lens-desc">Total monochrome vision</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: Vision & Environment -->
+      <section class="section">
+        <h2 class="section-title">Vision Acuity & Situational</h2>
+        <div class="lens-grid">
+          <button class="lens-card" data-lens="blur">
+            <span class="lens-name">Low Acuity / Cataracts</span>
+            <span class="lens-desc">Simulated corneal blur</span>
+          </button>
+          <button class="lens-card" data-lens="sunlight">
+            <span class="lens-name">Bright Sun Glare</span>
+            <span class="lens-desc">100k lux outdoor washout</span>
+          </button>
+          <button class="lens-card" data-lens="tunnel">
+            <span class="lens-name">Tunnel Vision</span>
+            <span class="lens-desc">Peripheral loss (Glaucoma)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: Motor & Navigation -->
+      <section class="section">
+        <h2 class="section-title">Motor & Mobility</h2>
+        <div class="lens-grid">
+          <button class="lens-card" data-lens="tremor">
+            <span class="lens-name">Hand Tremor</span>
+            <span class="lens-desc">Involuntary pointer jitter</span>
+          </button>
+          <button class="lens-card" data-lens="keyboard_only">
+            <span class="lens-name">Keyboard Only</span>
+            <span class="lens-desc">Mouse clicks suppressed</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Intensity Control -->
+      <div class="intensity-row">
+        <span class="intensity-label">Simulation Intensity:</span>
+        <div class="intensity-buttons">
+          <button class="btn-intensity" data-intensity="0.7">Mild</button>
+          <button class="btn-intensity active" data-intensity="1.0">1.0x</button>
+          <button class="btn-intensity" data-intensity="1.4">Severe</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Action -->
+    <footer class="footer">
+      <button id="btn-reset-main" class="btn-reset-main">Clear Active Lens</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
