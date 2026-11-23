@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { Check, ShieldCheck, ShoppingBag, Loader2, AlertTriangle, WifiOff } from 'lucide-react';
+import { useLenses } from '@/context/LensContext';
 
 interface ScenarioProps {
   appliedFixes: Record<string, boolean>;
@@ -9,11 +10,17 @@ interface ScenarioProps {
 }
 
 export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioProps) {
+  const { isLensActive } = useLenses();
+  const isSlowNetwork = isLensActive('slow_network');
+
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [duplicateCharges, setDuplicateCharges] = useState(0);
 
   const hasHighContrast = appliedFixes['high_contrast'] ?? false;
   const hasSemanticLabels = appliedFixes['semantic_labels'] ?? false;
@@ -22,12 +29,41 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return;
+
+    if (isSlowNetwork) {
+      if (isSubmitting) {
+        // Flawed mode allows duplicate taps during the 2.5s network stall
+        setClickCount((c) => c + 1);
+        return;
+      }
+
+      setIsSubmitting(true);
+      setClickCount(1);
+
+      // Simulate 2.5s subway 2G round-trip transit
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmitted(true);
+        onSuccess?.();
+      }, 2500);
+      return;
+    }
+
     setSubmitted(true);
     onSuccess?.();
   };
 
+  const totalCharged = (38.5 * (clickCount > 1 ? clickCount : 1)).toFixed(2);
+
   return (
-    <div className="w-full max-w-md mx-auto bg-white text-slate-900 rounded-2xl shadow-xl border border-slate-200 overflow-hidden font-sans">
+    <div className="w-full max-w-md mx-auto bg-white text-slate-900 rounded-2xl shadow-xl border border-slate-200 overflow-hidden font-sans relative">
+      {/* 2G Slow Network Progress Bar */}
+      {isSubmitting && (
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-200 overflow-hidden z-30">
+          <div className="h-full bg-amber-500 animate-pulse w-3/4 transition-all duration-1000" />
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="bg-slate-50 px-5 py-4 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -36,9 +72,16 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
             FreshMarket Express
           </span>
         </div>
-        <span className="text-xs font-semibold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">
-          Order #8492
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isSlowNetwork && (
+            <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
+              <WifiOff className="w-3 h-3" /> 2G Subway Tunnel
+            </span>
+          )}
+          <span className="text-xs font-semibold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">
+            Order #8492
+          </span>
+        </div>
       </div>
 
       <div className="p-6">
@@ -53,17 +96,41 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
         </div>
 
         {submitted ? (
-          <div className="py-8 text-center space-y-3">
+          <div className="py-6 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-sm">
               <Check className="w-6 h-6 stroke-[3]" />
             </div>
-            <h4 className="text-base font-bold text-slate-900">Order Placed Successfully!</h4>
-            <p className="text-xs text-slate-600 max-w-xs mx-auto">
-              Your grocery delivery is en route to {street || 'your delivery address'}.
-            </p>
+            <div>
+              <h4 className="text-base font-bold text-slate-900">Order Placed Successfully!</h4>
+              <p className="text-xs text-slate-600 max-w-xs mx-auto mt-1">
+                Your grocery delivery is en route to {street || 'your delivery address'}.
+              </p>
+            </div>
+
+            {/* Slow Network Duplicate Submission Warning */}
+            {clickCount > 1 && !hasHighContrast && (
+              <div className="bg-amber-50 border border-amber-300 p-3.5 rounded-xl text-left space-y-1.5 animate-in fade-in">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Duplicate Charges Detected ({clickCount}x Orders)</span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Because the button lacked a disabled loading state, you tapped <strong>{clickCount} times</strong> during the 2.5s subway latency stall. Total charged:{' '}
+                  <strong>${totalCharged}</strong> instead of $38.50.
+                </p>
+                <div className="text-[10px] text-amber-900 font-semibold pt-1 border-t border-amber-200">
+                  💡 <strong>WCAG 4.1.3 & 2.2.1:</strong> Always disable buttons immediately upon submit and announce loading state to prevent multi-charge bugs on slow networks.
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={() => setSubmitted(false)}
-              className="mt-2 text-xs text-emerald-700 font-semibold hover:underline cursor-pointer"
+              onClick={() => {
+                setSubmitted(false);
+                setIsSubmitting(false);
+                setClickCount(0);
+              }}
+              className="text-xs text-emerald-700 font-semibold hover:underline cursor-pointer block mx-auto"
             >
               Reset Checkout Demo
             </button>
@@ -143,7 +210,6 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
             {/* Terms and Agreement Checkbox */}
             <div className="pt-1">
               {hasTargetSize ? (
-                /* Accessible 48px Target Card */
                 <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-400 bg-slate-50/90 cursor-pointer min-h-[48px] hover:border-slate-700 transition-colors">
                   <input
                     type="checkbox"
@@ -156,7 +222,6 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
                   </span>
                 </label>
               ) : (
-                /* Flawed Tiny 14px Checkbox with detached text */
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -171,19 +236,39 @@ export function SunshineCheckoutScenario({ appliedFixes, onSuccess }: ScenarioPr
               )}
             </div>
 
+            {/* Subway 2G in-flight indicator */}
+            {isSubmitting && !hasHighContrast && clickCount > 1 && (
+              <div className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 animate-pulse font-medium">
+                ⚠️ Connection stalled... You clicked {clickCount} times!
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!agreed}
-              className={`w-full py-3 rounded-xl text-xs font-bold transition-all ${
+              disabled={!agreed || (hasHighContrast && isSubmitting)}
+              className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 agreed
                   ? hasHighContrast
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-[0.99] cursor-pointer'
+                    ? isSubmitting
+                      ? 'bg-slate-400 text-white cursor-wait'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-[0.99] cursor-pointer'
+                    : isSubmitting
+                    ? 'bg-emerald-400 text-white cursor-pointer' // Flawed: still looks active!
                     : 'bg-emerald-400 text-white cursor-pointer'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              Confirm & Pay $38.50
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>
+                    {hasHighContrast ? 'Processing Payment (Please wait)...' : 'Confirm & Pay $38.50'}
+                  </span>
+                </>
+              ) : (
+                <span>Confirm & Pay $38.50</span>
+              )}
             </button>
           </form>
         )}

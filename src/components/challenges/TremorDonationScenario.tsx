@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { Heart, CheckCircle2, ShieldCheck, Sparkles, Loader2, AlertTriangle, WifiOff } from 'lucide-react';
+import { useLenses } from '@/context/LensContext';
 
 interface ScenarioProps {
   appliedFixes: Record<string, boolean>;
@@ -11,9 +12,14 @@ interface ScenarioProps {
 const AMOUNTS = [10, 25, 50, 100];
 
 export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProps) {
+  const { isLensActive } = useLenses();
+  const isSlowNetwork = isLensActive('slow_network');
+
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [coverFee, setCoverFee] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const hasGenerousTargets = appliedFixes['generous_targets'] ?? false;
@@ -37,14 +43,43 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAmount) return;
+
+    if (isSlowNetwork) {
+      if (isSubmitting) {
+        setClickCount((c) => c + 1);
+        return;
+      }
+
+      setIsSubmitting(true);
+      setClickCount(1);
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmitted(true);
+        if (selectedAmount === 25 && coverFee) {
+          onSuccess?.();
+        }
+      }, 2500);
+      return;
+    }
+
     setSubmitted(true);
     if (selectedAmount === 25 && coverFee) {
       onSuccess?.();
     }
   };
 
+  const totalCharged = (parseFloat(total) * (clickCount > 1 ? clickCount : 1)).toFixed(2);
+
   return (
-    <div className="w-full max-w-md mx-auto bg-slate-900 text-slate-100 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden font-sans">
+    <div className="w-full max-w-md mx-auto bg-slate-900 text-slate-100 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden font-sans relative">
+      {/* 2G Slow Network Progress Bar */}
+      {isSubmitting && (
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-800 overflow-hidden z-30">
+          <div className="h-full bg-amber-500 animate-pulse w-3/4 transition-all duration-1000" />
+        </div>
+      )}
+
       {/* Non-Profit Header */}
       <div className="bg-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -56,29 +91,58 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
             <p className="text-[11px] text-slate-400">Emergency Winter Campaign</p>
           </div>
         </div>
-        <span className="text-[10px] font-mono bg-rose-950/40 text-rose-300 px-2 py-0.5 rounded border border-rose-800/40">
-          501(c)(3)
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isSlowNetwork && (
+            <span className="text-[10px] font-mono font-bold bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-800/60">
+              <WifiOff className="w-3 h-3" /> 2G Latency
+            </span>
+          )}
+          <span className="text-[10px] font-mono bg-rose-950/40 text-rose-300 px-2 py-0.5 rounded border border-rose-800/40">
+            501(c)(3)
+          </span>
+        </div>
       </div>
 
       <div className="p-6">
         {submitted ? (
-          <div className="py-8 text-center space-y-3">
+          <div className="py-6 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h4 className="text-base font-bold text-white">Thank You for Donating ${total}!</h4>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto">
-              Your gift provides warm meals to local families.
-            </p>
+            <div>
+              <h4 className="text-base font-bold text-white">Thank You for Donating ${total}!</h4>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto mt-1">
+                Your gift provides warm meals to local families.
+              </p>
+            </div>
+
+            {/* Duplicate submission warning under slow 2G network */}
+            {clickCount > 1 && !hasGenerousTargets && (
+              <div className="bg-amber-950/50 border border-amber-800/60 p-3.5 rounded-xl text-left space-y-1.5 animate-in fade-in">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Duplicate Donations Attempted ({clickCount}x Clicks)</span>
+                </div>
+                <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                  Because the button did not disable during the 2.5s network lag, you clicked <strong>{clickCount} times</strong>. Total attempted charge:{' '}
+                  <strong>${totalCharged}</strong>.
+                </p>
+                <div className="text-[10px] text-amber-400/90 font-medium pt-1 border-t border-amber-800/40">
+                  💡 <strong>WCAG 4.1.3:</strong> Interfaces must provide immediate disabled feedback to prevent multiple transaction submissions on high-latency mobile networks.
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => {
                 setSubmitted(false);
+                setIsSubmitting(false);
                 setSelectedAmount(null);
                 setCoverFee(false);
                 setFeedback(null);
+                setClickCount(0);
               }}
-              className="text-xs text-emerald-400 font-semibold hover:underline mt-2 cursor-pointer"
+              className="text-xs text-emerald-400 font-semibold hover:underline mt-2 cursor-pointer block mx-auto"
             >
               Reset Donation Demo
             </button>
@@ -97,9 +161,7 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
                 )}
               </div>
 
-              {/* Flawed Tiny Spacing vs Fixed Generous Buttons */}
               {hasGenerousTargets ? (
-                /* Accessible 48px+ Targets with 12px Grid Gap */
                 <div className="grid grid-cols-2 gap-3">
                   {AMOUNTS.map((amt) => {
                     const isSelected = selectedAmount === amt;
@@ -120,7 +182,6 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
                   })}
                 </div>
               ) : (
-                /* Flawed Cramped 2px Gap Pills */
                 <div className="flex gap-0.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
                   {AMOUNTS.map((amt) => {
                     const isSelected = selectedAmount === amt;
@@ -154,7 +215,6 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
             {/* Checkbox Fee Coverage */}
             <div>
               {hasClickableContainer ? (
-                /* Large 52px Accessible Touch Card */
                 <label className="flex items-center gap-3 p-3.5 rounded-xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer min-h-[52px] hover:border-slate-500 transition-all">
                   <input
                     type="checkbox"
@@ -172,7 +232,6 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
                   </div>
                 </label>
               ) : (
-                /* Flawed Tiny 12px Checkbox with Detached Span */
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -187,6 +246,13 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
               )}
             </div>
 
+            {/* Subway in-flight stall warning */}
+            {isSubmitting && !hasGenerousTargets && clickCount > 1 && (
+              <div className="text-[11px] text-amber-300 bg-amber-950/60 p-2 rounded-lg border border-amber-800/40 animate-pulse font-medium">
+                ⚠️ Connection stalled... You clicked {clickCount} times!
+              </div>
+            )}
+
             {/* Donation Summary & Submit */}
             <div className="pt-2 border-t border-slate-800 space-y-3">
               <div className="flex justify-between items-center text-xs">
@@ -198,14 +264,31 @@ export function TremorDonationScenario({ appliedFixes, onSuccess }: ScenarioProp
 
               <button
                 type="submit"
-                disabled={!selectedAmount}
-                className={`w-full py-3 rounded-xl text-xs font-bold transition-all ${
+                disabled={!selectedAmount || (hasGenerousTargets && isSubmitting)}
+                className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                   selectedAmount
-                    ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md cursor-pointer'
+                    ? hasGenerousTargets
+                      ? isSubmitting
+                        ? 'bg-slate-700 text-slate-400 cursor-wait'
+                        : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md cursor-pointer'
+                      : isSubmitting
+                      ? 'bg-emerald-500 text-slate-950 cursor-pointer' // Flawed: still looks active!
+                      : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md cursor-pointer'
                     : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                 }`}
               >
-                Complete Gift of ${total}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                    <span>
+                      {hasGenerousTargets
+                        ? `Processing Gift of $${total}...`
+                        : `Complete Gift of $${total}`}
+                    </span>
+                  </>
+                ) : (
+                  <span>Complete Gift of ${total}</span>
+                )}
               </button>
             </div>
           </form>

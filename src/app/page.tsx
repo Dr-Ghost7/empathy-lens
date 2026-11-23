@@ -30,7 +30,7 @@ function ChromeIcon({ className = 'w-4 h-4' }: { className?: string }) {
 }
 
 interface PresetOption {
-  id: 'checkout' | 'keyboard' | 'colorblind' | 'tremor';
+  id: 'checkout' | 'keyboard' | 'colorblind' | 'tremor' | 'subway';
   label: string;
   defaultLens: LensId;
   scenarioTitle: string;
@@ -124,6 +124,23 @@ const PRESETS: PresetOption[] = [
   <button className="h-12 rounded-xl border-2 font-bold">$10</button>
   <button className="h-12 rounded-xl border-2 font-bold">$25</button>
 </div>`,
+  },
+  {
+    id: 'subway',
+    label: '5. Subway 2G & Stalls',
+    defaultLens: 'slow_network',
+    scenarioTitle: 'Subway 2G Network Latency (Duplicate Submissions & Stalls)',
+    summary:
+      'On high-latency 2G subway connections (2,500ms RTT), buttons without disabled loading states allow frantic duplicate clicks that cause multiple charges!',
+    wcagRule: 'WCAG 2.2.1 Timing Adjustable & 4.1.3 Status Messages',
+    codeFlawed: `<!-- Flawed: Button does not disable on click, allowing duplicate taps during lag -->
+<button onClick={handleSubmit}>
+  Confirm & Pay $38.50
+</button>`,
+    codeFixed: `<!-- Accessible Fix: Immediately disables and shows loading feedback -->
+<button disabled={isSubmitting} aria-busy={isSubmitting} className="cursor-wait">
+  {isSubmitting ? "Processing Payment..." : "Confirm & Pay $38.50"}
+</button>`,
   },
 ];
 
@@ -291,7 +308,7 @@ export default function HomePage() {
         {/* Clean Interactive Canvas */}
         <div className="bg-zinc-950 border border-zinc-800/80 rounded-3xl p-8 sm:p-14 shadow-xl flex items-center justify-center min-h-[480px]">
           <LensContainer className="w-full flex items-center justify-center">
-            {selectedPreset.id === 'checkout' && (
+            {(selectedPreset.id === 'checkout' || selectedPreset.id === 'subway') && (
               <SunshineCheckoutScenario appliedFixes={appliedFixes} />
             )}
             {selectedPreset.id === 'keyboard' && (

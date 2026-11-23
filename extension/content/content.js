@@ -7,6 +7,10 @@
   let tunnelElement = null;
   let tremorElement = null;
   let distractionElement = null;
+  let slowNetworkBanner = null;
+  let slowNetworkLoadingBar = null;
+  let inFlightTimeout = null;
+  let slowNetworkClickCount = 0;
   let tremorAnimId = null;
   let mousePos = { x: -100, y: -100 };
   let jitterPos = { x: -100, y: -100 };
@@ -94,7 +98,7 @@
     }, 2400);
   }
 
-  // Mouse event interceptor for Keyboard-Only mode
+  // Mouse event interceptor for Keyboard-Only mode and Slow Network simulation
   function handlePointerDownBlock(e) {
     if (activeLens === 'keyboard_only') {
       if (e.pointerType === 'mouse' || e.pointerType === 'touch' || !e.pointerType) {
@@ -104,6 +108,33 @@
         e.preventDefault();
         e.stopPropagation();
         showToast('Mouse navigation suppressed: Use Tab, Shift+Tab, and Enter.');
+      }
+    }
+
+    if (activeLens === 'slow_network') {
+      const interactive = e.target.closest(
+        'button, a, input[type="submit"], input[type="checkbox"], [role="button"]'
+      );
+      if (interactive) {
+        slowNetworkClickCount++;
+        if (slowNetworkClickCount > 1) {
+          showToast(
+            `⚠️ Subway 2G: ${slowNetworkClickCount} duplicate taps during network stall!`
+          );
+        }
+        if (!slowNetworkLoadingBar) {
+          slowNetworkLoadingBar = document.createElement('div');
+          slowNetworkLoadingBar.id = 'empathy-lens-loading-crawl';
+          document.body.appendChild(slowNetworkLoadingBar);
+        }
+        if (inFlightTimeout) clearTimeout(inFlightTimeout);
+        inFlightTimeout = setTimeout(() => {
+          slowNetworkClickCount = 0;
+          if (slowNetworkLoadingBar) {
+            slowNetworkLoadingBar.remove();
+            slowNetworkLoadingBar = null;
+          }
+        }, 2400);
       }
     }
   }
@@ -190,6 +221,16 @@
       distractionElement.remove();
       distractionElement = null;
     }
+    if (slowNetworkBanner) {
+      slowNetworkBanner.remove();
+      slowNetworkBanner = null;
+    }
+    if (slowNetworkLoadingBar) {
+      slowNetworkLoadingBar.remove();
+      slowNetworkLoadingBar = null;
+    }
+    if (inFlightTimeout) clearTimeout(inFlightTimeout);
+    slowNetworkClickCount = 0;
 
     stopTremorLoop();
     updateHud(null);
@@ -258,6 +299,12 @@
       showToast('Keyboard Only Active: Tab through the page. Mouse clicks are blocked.');
     } else if (lensId === 'slow_network') {
       showToast('📶 Subway 2G Active: Simulated 2,400ms high latency.');
+      if (!slowNetworkBanner) {
+        slowNetworkBanner = document.createElement('div');
+        slowNetworkBanner.id = 'empathy-lens-network-bar';
+        slowNetworkBanner.textContent = '📶 Subway 2G Tunnel Simulation • 2,400ms Packet Transit Lag';
+        document.body.appendChild(slowNetworkBanner);
+      }
     } else if (lensId === 'distraction') {
       if (!distractionElement) {
         distractionElement = document.createElement('div');

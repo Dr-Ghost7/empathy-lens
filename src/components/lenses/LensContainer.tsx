@@ -161,19 +161,26 @@ export function LensContainer({
         </div>
       )}
 
-      {/* Subway 2G / Throttled Network Latency Indicator */}
+      {/* Subway 2G / Throttled Network Latency Indicator & Bar */}
       {isSlowNetworkActive && (
-        <div className="absolute top-3 left-3 z-35 flex items-center gap-2 bg-amber-950/90 border border-amber-500/50 text-amber-300 text-xs px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-md">
-          <WifiOff className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span>
-            <strong>Subway 2G:</strong> 2,400ms High Latency
-          </span>
+        <>
           {networkLoading && (
-            <span className="flex items-center gap-1 font-mono text-[11px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200 ml-1">
-              <Loader2 className="w-3 h-3 animate-spin" /> Throttling...
-            </span>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-amber-950 overflow-hidden z-35 animate-in fade-in">
+              <div className="h-full bg-amber-500 animate-pulse w-3/4 transition-all duration-1000" />
+            </div>
           )}
-        </div>
+          <div className="absolute top-3 left-3 z-35 flex items-center gap-2 bg-amber-950/90 border border-amber-500/50 text-amber-300 text-xs px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-md">
+            <WifiOff className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>
+              <strong>Subway 2G:</strong> 2,400ms Network Latency
+            </span>
+            {networkLoading && (
+              <span className="flex items-center gap-1 font-mono text-[11px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200 ml-1">
+                <Loader2 className="w-3 h-3 animate-spin" /> Transmitting Packets...
+              </span>
+            )}
+          </div>
+        </>
       )}
 
       {/* Cognitive Distraction / ADHD Sensory Overload Simulation */}
