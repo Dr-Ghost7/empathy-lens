@@ -1,5 +1,6 @@
 # Empathy Lens
 
+> **Live Deployment:** [https://empathy-lens-pi.vercel.app/](https://empathy-lens-pi.vercel.app/)  
 > **Status:** Work In Progress (WIP) — Minimalist web sandbox & Manifest V3 browser extension for live website testing.
 
 An accessibility and sensory simulation tool available both as a **clean web simulator** and a **Chromium browser extension (Manifest V3)** that lets you test any live website in the wild under real-world visual, motor, and situational constraints.

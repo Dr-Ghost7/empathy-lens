@@ -110,6 +110,41 @@
   animation: empathyToastFade 0.25s ease-out forwards !important;
 }
 
+/* Distraction Banner Overlay */
+#empathy-lens-distraction-box {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 2147483645 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  animation: empathyToastFade 0.3s ease-out !important;
+}
+
+.empathy-distraction-item {
+  background: #f59e0b !important;
+  color: #1c1917 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 8px 14px !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+.empathy-distraction-ping {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
 @keyframes empathyToastFade {
   from { opacity: 0; transform: translate(-50%, -10px); }
   to { opacity: 1; transform: translate(-50%, 0); }

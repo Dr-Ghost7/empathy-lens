@@ -6,6 +6,7 @@
   let sunlightElement = null;
   let tunnelElement = null;
   let tremorElement = null;
+  let distractionElement = null;
   let tremorAnimId = null;
   let mousePos = { x: -100, y: -100 };
   let jitterPos = { x: -100, y: -100 };
@@ -21,6 +22,8 @@
     sunlight: 'Bright Sun Glare (100k lux)',
     tremor: 'Hand Tremor / Motor Jitter',
     keyboard_only: 'Keyboard Only (Pointer Suppressed)',
+    slow_network: 'Subway 2G (Throttled)',
+    distraction: 'Cognitive Overload (ADHD)',
   };
 
   // Ensure SVG filters are injected into the page DOM
@@ -183,6 +186,10 @@
       tunnelElement.remove();
       tunnelElement = null;
     }
+    if (distractionElement) {
+      distractionElement.remove();
+      distractionElement = null;
+    }
 
     stopTremorLoop();
     updateHud(null);
@@ -249,6 +256,18 @@
       startTremorLoop();
     } else if (lensId === 'keyboard_only') {
       showToast('Keyboard Only Active: Tab through the page. Mouse clicks are blocked.');
+    } else if (lensId === 'slow_network') {
+      showToast('📶 Subway 2G Active: Simulated 2,400ms high latency.');
+    } else if (lensId === 'distraction') {
+      if (!distractionElement) {
+        distractionElement = document.createElement('div');
+        distractionElement.id = 'empathy-lens-distraction-box';
+        distractionElement.innerHTML = `
+          <div class="empathy-distraction-item">⚡ FLASH OFFER: 01:59 left!</div>
+          <div class="empathy-distraction-ping">🔔 New ping: "Do you have a second?"</div>
+        `;
+        document.body.appendChild(distractionElement);
+      }
     }
 
     updateHud(lensId);

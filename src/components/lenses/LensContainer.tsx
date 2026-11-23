@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useRef, useState, useEffect } from 'react';
 import { useLenses } from '@/context/LensContext';
-import { AlertCircle, MousePointer2 } from 'lucide-react';
+import { AlertCircle, MousePointer2, WifiOff, Loader2, BellRing, Sparkles } from 'lucide-react';
 
 interface LensContainerProps {
   children: ReactNode;
@@ -16,17 +16,16 @@ export function LensContainer({
   enforceMouseBlock = true,
 }: LensContainerProps) {
   const {
-    activeLenses,
     isLensActive,
     intensity,
     mouseBlockedNotice,
     triggerMouseBlockedNotice,
-    cursorPos,
     jitterPos,
   } = useLenses();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [localMousePos, setLocalMousePos] = useState({ x: 200, y: 200 });
+  const [networkLoading, setNetworkLoading] = useState(false);
 
   // Determine CSS filter string
   const filters: string[] = [];
@@ -54,14 +53,24 @@ export function LensContainer({
 
   const filterStyle = filters.length > 0 ? filters.join(' ') : 'none';
 
-  // Handle keyboard-only mouse interception
+  // Handle pointer events
   const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
+    // 1. Keyboard-only mode mouse block
     if (enforceMouseBlock && isLensActive('keyboard_only')) {
       if (e.pointerType === 'mouse' || e.pointerType === 'touch') {
         e.preventDefault();
         e.stopPropagation();
         triggerMouseBlockedNotice();
+        return;
       }
+    }
+
+    // 2. Slow Network / Subway 2G latency simulation
+    if (isLensActive('slow_network')) {
+      setNetworkLoading(true);
+      setTimeout(() => {
+        setNetworkLoading(false);
+      }, 1400 * intensity);
     }
   };
 
@@ -79,6 +88,7 @@ export function LensContainer({
   const isSunlightActive = isLensActive('sunlight');
   const isTremorActive = isLensActive('tremor');
   const isKeyboardOnlyActive = isLensActive('keyboard_only');
+  const isSlowNetworkActive = isLensActive('slow_network');
   const isDistractionActive = isLensActive('distraction');
 
   return (
@@ -112,7 +122,6 @@ export function LensContainer({
             mixBlendMode: 'screen',
           }}
         >
-          {/* Simulated diagonal screen reflection glare */}
           <div
             className="absolute inset-0 opacity-40"
             style={{
@@ -152,14 +161,34 @@ export function LensContainer({
         </div>
       )}
 
-      {/* Cognitive Distraction / ADHD Simulation */}
+      {/* Subway 2G / Throttled Network Latency Indicator */}
+      {isSlowNetworkActive && (
+        <div className="absolute top-3 left-3 z-35 flex items-center gap-2 bg-amber-950/90 border border-amber-500/50 text-amber-300 text-xs px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-md">
+          <WifiOff className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+          <span>
+            <strong>Subway 2G:</strong> 2,400ms High Latency
+          </span>
+          {networkLoading && (
+            <span className="flex items-center gap-1 font-mono text-[11px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200 ml-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Throttling...
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Cognitive Distraction / ADHD Sensory Overload Simulation */}
       {isDistractionActive && (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-25 overflow-hidden">
-          <div className="absolute top-2 right-2 animate-bounce bg-amber-500 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow-lg border border-amber-300">
-            ⚡ 2 MINUTE FLASH SALE!
+          {/* Animated peripheral flash sale banner */}
+          <div className="absolute top-3 right-3 animate-bounce bg-amber-500 text-amber-950 text-[11px] font-bold px-3 py-1 rounded-full shadow-xl border border-amber-300 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>FLASH OFFER: 01:59 remaining!</span>
           </div>
-          <div className="absolute bottom-4 left-4 animate-pulse bg-purple-600 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl opacity-90">
-            💬 Customer support: "Can I assist you?"
+
+          {/* Incoming simulated distracting notification */}
+          <div className="absolute bottom-4 left-4 animate-pulse bg-purple-700 text-white text-xs px-3.5 py-2 rounded-xl shadow-2xl flex items-center gap-2 border border-purple-400/30">
+            <BellRing className="w-3.5 h-3.5 text-purple-200 animate-wiggle" />
+            <span>New ping: "Hey, do you have that report ready?"</span>
           </div>
         </div>
       )}

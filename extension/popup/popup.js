@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tunnel: 'Tunnel Vision',
     tremor: 'Hand Tremor',
     keyboard_only: 'Keyboard Only',
+    slow_network: 'Subway 2G (Throttled)',
+    distraction: 'Cognitive Overload (ADHD)',
   };
 
   // Update popup visual state

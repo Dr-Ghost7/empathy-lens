@@ -267,6 +267,8 @@ export default function HomePage() {
               <option value="blur">Low Acuity / Cataracts</option>
               <option value="tunnel">Tunnel Vision</option>
               <option value="keyboard_only">Keyboard Only</option>
+              <option value="slow_network">Subway 2G / Throttled Latency</option>
+              <option value="distraction">Cognitive Overload / ADHD</option>
             </select>
           </div>
 

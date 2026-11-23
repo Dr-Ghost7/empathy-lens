@@ -16,6 +16,8 @@ import {
   Sun,
   Keyboard,
   Zap,
+  WifiOff,
+  BellRing,
 } from 'lucide-react';
 
 export default function LensesPage() {
@@ -73,7 +75,8 @@ export default function LensesPage() {
               { id: 'all', label: 'All Lenses' },
               { id: 'visual', label: 'Color & Vision' },
               { id: 'motor', label: 'Motor & Movement' },
-              { id: 'situational', label: 'Situational & Environment' },
+              { id: 'situational', label: 'Situational & Network' },
+              { id: 'cognitive', label: 'Cognitive & ADHD' },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -255,14 +258,29 @@ export default function LensesPage() {
                       </div>
                     )}
 
-                    {/* Visual preview for Slow Network / Distraction */}
-                    {(lens.id === 'slow_network' || lens.id === 'distraction') && (
-                      <div className="flex items-center justify-between gap-2 pt-1 text-xs text-zinc-300">
-                        <span className="flex items-center gap-1.5 text-[11px]">
-                          <Zap className="w-3 h-3 text-amber-400" />
-                          {lens.id === 'slow_network' ? '2000ms Synthetic RTT' : 'Divided Cognitive Load'}
+                    {/* Visual preview for Slow Network (Subway 2G) */}
+                    {lens.id === 'slow_network' && (
+                      <div className="flex items-center justify-between gap-3 pt-1 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800">
+                        <div className="flex items-center gap-2 text-xs">
+                          <WifiOff className="w-4 h-4 text-amber-400 animate-pulse" />
+                          <span className="text-zinc-300">2,400ms Subway RTT</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">
+                          Throttled Packets
                         </span>
-                        <span className="text-[10px] text-zinc-500 font-mono">WCAG 2.2</span>
+                      </div>
+                    )}
+
+                    {/* Visual preview for Cognitive Distraction / ADHD */}
+                    {lens.id === 'distraction' && (
+                      <div className="flex items-center justify-between gap-3 pt-1 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800">
+                        <div className="flex items-center gap-2 text-xs">
+                          <BellRing className="w-4 h-4 text-purple-400 animate-pulse" />
+                          <span className="text-zinc-300">Sensory & Flash Interruptions</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
+                          Divided Attention
+                        </span>
                       </div>
                     )}
                   </div>
